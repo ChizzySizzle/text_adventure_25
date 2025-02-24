@@ -2,9 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GameManager : MonoBehaviour
+public class NavigationManager : MonoBehaviour
 {
-    public static GameManager instance;
+    public static NavigationManager instance;
+    public Room startingRoom;
+    public Room currentRoom;
 
     private void Awake()
     {
@@ -19,6 +21,12 @@ public class GameManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-       
+        Debug.Log(startingRoom.description);
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        
     }
 }
