@@ -1,12 +1,17 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class NavigationManager : MonoBehaviour
 {
     public static NavigationManager instance;
     public Room startingRoom;
     public Room currentRoom;
+    public List<Room> rooms;
+
+    public delegate void GameOver();
+    public event GameOver onGameOver;
 
     public Exit toKeyNorth;
 
@@ -25,6 +30,13 @@ public class NavigationManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        InputManager.instance.onRestart += ResetGame;
+        // toKeyNorth.isHidden = true;
+        // currentRoom = startingRoom;
+        // Unpack();
+    }
+
+    public void ResetGame() {
         toKeyNorth.isHidden = true;
         currentRoom = startingRoom;
         Unpack();
@@ -41,17 +53,39 @@ public class NavigationManager : MonoBehaviour
         }
 
         InputManager.instance.UpdateStory(description);
+
+        if (exitRooms.Count == 0) {
+            if (onGameOver != null) {
+                onGameOver();
+            }
+        }
     }
 
     public bool SwitchRooms(string dir) {
         if (exitRooms.ContainsKey(dir)) {
-            currentRoom = exitRooms[dir];
-            InputManager.instance.UpdateStory("You go " + dir);
-            Unpack();
-            return true;
+            if (!GetExit(dir).isLocked || GameManager.instance.inventory.Contains("key")) {
+                InputManager.instance.UpdateStory("You go " + dir);
+                currentRoom = exitRooms[dir];
+                Unpack();
+                return true;
+            }
         }
 
         return false;
+    }
+
+    public void SwitchRooms(Room room) {
+        currentRoom = room;
+        Unpack();
+    }
+
+    Exit GetExit(string dir) {
+        foreach(Exit e in currentRoom.exits) {
+            if (e.direction.ToString() == dir) {
+                return e;
+            }
+        }
+        return null;
     }
 
     public bool TakeItem(string item) {
@@ -63,5 +97,14 @@ public class NavigationManager : MonoBehaviour
         }
         else
             return false;
+    }
+
+    public Room GetRoomFromName(string name) {
+        foreach (Room aRoom in rooms) {
+            if (aRoom.name == name) {
+                return aRoom;
+            }
+        }
+        return null;
     }
 }

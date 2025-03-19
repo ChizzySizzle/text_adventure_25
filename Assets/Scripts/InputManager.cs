@@ -12,7 +12,9 @@ public class InputManager : MonoBehaviour
     public InputField userInput; // the input field object
     public Text inputText; // part of the input field where user enters response
     public Text placeHolderText; // part of the input field for initial placeholder text
-    public Button abutton;
+    // public Button abutton;
+    public delegate void Restart();
+    public event Restart onRestart;
     
     private string story; // holds the story to display
     private List<string> commands = new List<string>(); // Valid user commands
@@ -31,15 +33,23 @@ public class InputManager : MonoBehaviour
     {
         commands.Add("go");
         commands.Add("get");
+        commands.Add("restart");
+        commands.Add("save");
 
         userInput.onEndEdit.AddListener(GetInput);
         // abutton.onClick.AddListener(DoSomething);
         story = storyText.text;
+
+        NavigationManager.instance.onGameOver += EndGame;
     }
 
-    void DoSomething() {
-        Debug.Log("BUtton Clicked");
+    void EndGame() {
+        UpdateStory("\n Please enter 'restart' to play again");
     }
+
+    // void DoSomething() {
+    //     Debug.Log("BUtton Clicked");
+    // }
 
     public void UpdateStory(string msg) // Update display
     {
@@ -59,19 +69,26 @@ public class InputManager : MonoBehaviour
                         // FILL IN LATER
                     }
                     else {
-                        UpdateStory("Exit does not exist. Try again.");
+                        UpdateStory("Exit does not exist or is locked. Try again.");
                     }
                 }
                 else if (parts[0] == "get") { // Add things to inventory
-                if (NavigationManager.instance.TakeItem(parts[1])) {
-                    GameManager.instance.inventory.Add(parts[1]);
-                    UpdateStory($"You've added '{parts[1]}' to your inventory!");
+                    if (NavigationManager.instance.TakeItem(parts[1])) {
+                        GameManager.instance.inventory.Add(parts[1]);
+                        UpdateStory($"You've added '{parts[1]}' to your inventory!");
+                    }
+                }
+                else if (parts[0] == "restart") {
+                    if(onRestart != null)
+                        onRestart();
+                }
+                else if (parts[0] == "save") {
+                    GameManager.instance.Save();
                 }
                 else {
                     UpdateStory($"Sorry, {parts[1]} does not exist in this room.");
                 }
                 UpdateStory(msg);
-                }
             }
         }
 
