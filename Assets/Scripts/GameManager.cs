@@ -24,8 +24,8 @@ public class GameManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-       InputManager.instance.onRestart += ResetGame;
-       Load();
+        InputManager.instance.onRestart += ResetGame;
+        Load();
     }
 
     void Load() {
@@ -35,17 +35,32 @@ public class GameManager : MonoBehaviour
             SaveState playerData = (SaveState) bf.Deserialize(afile);
             afile.Close();
 
+            if (playerData.inventory != null) {
+                inventory = playerData.inventory;
+            }
+
+            CheckInventory();
+
             Room room = NavigationManager.instance.GetRoomFromName(playerData.currentRoom);
             if (room != null) {
                 NavigationManager.instance.SwitchRooms(room);
             }
-
-            if (playerData.inventory != null) {
-                inventory = playerData.inventory;
-            }
         }
         else {
             NavigationManager.instance.ResetGame();
+        }
+    }
+
+    private void CheckInventory() {
+        foreach (string item in inventory) {
+            if (inventory.Contains("orb")) {
+                NavigationManager.instance.orbRoom.hasOrb = false;
+                NavigationManager.instance.orbRoom.description = "There is an orb shaped hole in this room.";
+            }
+            if (inventory.Contains("key")) {
+                NavigationManager.instance.keyRoom.hasKey = false;
+                NavigationManager.instance.keyRoom.description = "There is some stuff in here.";
+            }
         }
     }
 

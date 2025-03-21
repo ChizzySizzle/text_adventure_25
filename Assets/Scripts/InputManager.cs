@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Windows;
@@ -35,6 +37,8 @@ public class InputManager : MonoBehaviour
         commands.Add("get");
         commands.Add("restart");
         commands.Add("save");
+        commands.Add("inventory");
+        commands.Add("commands");
 
         userInput.onEndEdit.AddListener(GetInput);
         // abutton.onClick.AddListener(DoSomething);
@@ -64,6 +68,7 @@ public class InputManager : MonoBehaviour
             string[] parts = msg.ToLower().Split(splitInfo); //['go', 'north']
 
             if (commands.Contains(parts[0])){ // if valid input
+                UpdateStory(msg);
                 if (parts[0] == "go") { // Switch rooms
                     if (NavigationManager.instance.SwitchRooms(parts[1])) {
                         // FILL IN LATER
@@ -77,6 +82,9 @@ public class InputManager : MonoBehaviour
                         GameManager.instance.inventory.Add(parts[1]);
                         UpdateStory($"You've added '{parts[1]}' to your inventory!");
                     }
+                    else {
+                        UpdateStory($"'{parts[1]}' does not exist or has been picked up.");
+                    }
                 }
                 else if (parts[0] == "restart") {
                     if(onRestart != null)
@@ -84,11 +92,27 @@ public class InputManager : MonoBehaviour
                 }
                 else if (parts[0] == "save") {
                     GameManager.instance.Save();
+                    UpdateStory("Save Successful");
                 }
-                else {
-                    UpdateStory($"Sorry, {parts[1]} does not exist in this room.");
+                else if (parts[0] == "inventory") {
+                    UpdateStory("Your inventory currently contains: ");
+                    if (GameManager.instance.inventory.Count == 0) {
+                        UpdateStory("Nothing!");
+                    }
+                    else { 
+                        foreach (string item in GameManager.instance.inventory) {
+                            UpdateStory($"'{item}'");
+                        }
+                    }
                 }
-                UpdateStory(msg);
+                else if (parts[0] == "commands") {
+                    foreach (string command in commands) {
+                        UpdateStory(command);
+                    }
+                }
+            }
+            else {
+                UpdateStory("Command does not exist, try again.");
             }
         }
 
