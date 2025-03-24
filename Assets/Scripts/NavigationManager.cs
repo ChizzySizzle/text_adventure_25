@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -16,8 +17,6 @@ public class NavigationManager : MonoBehaviour
     public Exit toKeyNorth;
 
     private Dictionary<string, Room> exitRooms = new Dictionary<string, Room>();
-    public Room orbRoom;
-    public Room keyRoom;
 
     private void Awake()
     {
@@ -33,30 +32,16 @@ public class NavigationManager : MonoBehaviour
     void Start()
     {
         InputManager.instance.onRestart += ResetGame;
-
-
-        // toKeyNorth.isHidden = true;
-        // currentRoom = startingRoom;
-        // Unpack();
     }
 
     public void ResetGame() {
-        toKeyNorth.isHidden = true;
+        InputManager.instance.StarterText();
         currentRoom = startingRoom;
-        orbRoom.hasOrb = true;
-        orbRoom.description = "There is a blue orb in here.";
-        keyRoom.hasKey = true;
-        keyRoom.description = "There is some stuff in here. Is key a key over there?";
         Unpack();
     }
 
     void Unpack() {
-        if (currentRoom == orbRoom && GameManager.instance.inventory.Contains("orb")) {
-            orbRoom.description = "There is an orb shaped hole in this room.";
-        }
-        if (currentRoom == keyRoom && GameManager.instance.inventory.Contains("key")) {
-            keyRoom.description = "There is some stuff in here.";
-        }
+
         string description = currentRoom.description;
         exitRooms.Clear();
         foreach (Exit e in currentRoom.exits) {
@@ -102,14 +87,15 @@ public class NavigationManager : MonoBehaviour
         return null;
     }
 
+    // simplified this code because of new inventory management
     public bool TakeItem(string item) {
         if (item == "key" && currentRoom.hasKey) {
-            currentRoom.hasKey = false;
             return true;
         }
         else if (item == "orb" && currentRoom.hasOrb) {
-            currentRoom.hasOrb = false;
-            toKeyNorth.isHidden = false;
+            return true;
+        }
+        else if (item == "dog" && currentRoom.hasDog) {
             return true;
         }
         else

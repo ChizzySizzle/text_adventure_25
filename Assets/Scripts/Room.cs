@@ -12,4 +12,6 @@ public class Room : ScriptableObject
 
     public bool hasKey;
     public bool hasOrb;
+    // added dog
+    public bool hasDog;
 }

@@ -14,6 +14,8 @@ public class InputManager : MonoBehaviour
     public InputField userInput; // the input field object
     public Text inputText; // part of the input field where user enters response
     public Text placeHolderText; // part of the input field for initial placeholder text
+    public Scrollbar scrollbar;
+
     // public Button abutton;
     public delegate void Restart();
     public event Restart onRestart;
@@ -41,14 +43,22 @@ public class InputManager : MonoBehaviour
         commands.Add("commands");
 
         userInput.onEndEdit.AddListener(GetInput);
+        
         // abutton.onClick.AddListener(DoSomething);
+
         story = storyText.text;
 
         NavigationManager.instance.onGameOver += EndGame;
+        onRestart += StarterText;
     }
 
+    public void StarterText() { // helpful starter text, will clear previous story on restart.
+        story = "";
+        UpdateStory("Enter the word 'commands' for a full list of commands!");
+    }
+    
     void EndGame() {
-        UpdateStory("\n Please enter 'restart' to play again");
+        UpdateStory("\nPlease enter 'restart' to play again");
     }
 
     // void DoSomething() {
@@ -57,11 +67,11 @@ public class InputManager : MonoBehaviour
 
     public void UpdateStory(string msg) // Update display
     {
-        story += "\n" + msg;
+        story += "\n" + msg + "\n";
         storyText.text = story;
     }
 
-    void GetInput(string msg) // Process input
+    public void GetInput(string msg) // Process input
     {
         if (msg != "") {
             char[] splitInfo = { ' ' };
@@ -80,6 +90,8 @@ public class InputManager : MonoBehaviour
                 else if (parts[0] == "get") { // Add things to inventory
                     if (NavigationManager.instance.TakeItem(parts[1])) {
                         GameManager.instance.inventory.Add(parts[1]);
+                        // Check inventory to refresh inventory and adjust dynamic room values.
+                        GameManager.instance.CheckInventory();
                         UpdateStory($"You've added '{parts[1]}' to your inventory!");
                     }
                     else {
@@ -94,24 +106,27 @@ public class InputManager : MonoBehaviour
                     GameManager.instance.Save();
                     UpdateStory("Save Successful");
                 }
+                // Added inventory commands that loops through the inventory list if it contains items
                 else if (parts[0] == "inventory") {
                     UpdateStory("Your inventory currently contains: ");
+                    // inventory is empty
                     if (GameManager.instance.inventory.Count == 0) {
                         UpdateStory("Nothing!");
                     }
+                    // inventory is not empty
                     else { 
                         foreach (string item in GameManager.instance.inventory) {
-                            UpdateStory($"'{item}'");
+                            UpdateStory($"1x '{item}'");
                         }
                     }
                 }
+                // Added commands command to display possible commands
                 else if (parts[0] == "commands") {
-                    foreach (string command in commands) {
-                        UpdateStory(command);
-                    }
+                    UpdateStory("go (north, south, east, west)\nget (object)\nrestart\nsave\ninventory\ncommands/help");
                 }
             }
             else {
+                // response to gibberish
                 UpdateStory("Command does not exist, try again.");
             }
         }
